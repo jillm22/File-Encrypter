@@ -1,9 +1,7 @@
-pipeline {
-    agent any
-    stages {
+node {
+    try {
         stage('Build') {
-            steps {
-                sh '''
+            sh '''
                 echo "Building Java project..."
                 echo "Listing workspace contents:"
                 ls
@@ -11,12 +9,11 @@ pipeline {
                 mkdir -p build
                 javac -d build src/*.java
                 echo "Build successful"
-                '''
-            }
+            '''
         }
+
         stage('Test') {
-            steps {
-                sh '''
+            sh '''
                 echo "Running JUnit tests for File-Encrypter..."
                 cd "Password Protection"
                 # Download JUnit jar if not already present
@@ -33,27 +30,22 @@ pipeline {
                 --class-path build:test-build \
                 --scan-class-path
                 echo "JUnit tests executed successfully"
-                '''
-            }
+            '''
         }
+
         stage('Deploy') {
-            steps {
-                sh '''
+            sh '''
                 echo "Deploying (Packaging) File-Encrypter Application..."
                 cd "Password Protection"
                 # Create executable artifact (JAR)
                 jar cf FileEncrypter.jar -C build .
                 echo "Deployment successful - Artifact ready"
-                '''
-            }
+            '''
         }
-    }
-    post {
-        success {
-            echo "Pipeline executed successfully!"
-        }
-        failure {
-            echo "Pipeline failed!"
-        }
+
+        echo "Pipeline executed successfully!"
+    } catch (Exception e) {
+        echo "Pipeline failed!"
+        throw e
     }
 }
